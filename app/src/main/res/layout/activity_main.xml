@@ -18,17 +18,8 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentRight="true"
                 android:id="@+id/ivCitraR"
-                android:tooltipText="Input Gambar di sini"/>
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignLeft="@+id/ivCitraR"
-                android:layout_alignTop="@+id/ivCitraR"
-                android:layout_alignRight="@+id/ivCitraR"
-                android:layout_alignBottom="@+id/ivCitraR"
-                android:layout_margin="1dp"
-                android:gravity="center"
-                android:text="Masukan Gambar yang digunakan sebagai media steganografi"/>
+                android:tooltipText="Input Gambar di sini"
+                android:src="@drawable/ic_launcher_background"/>
     </RelativeLayout>
     <TextView
             android:layout_width="match_parent"
