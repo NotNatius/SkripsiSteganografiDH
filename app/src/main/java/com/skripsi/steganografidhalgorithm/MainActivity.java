@@ -83,29 +83,14 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                     if (secretMessage.getText() != null) {
                         //ImageSteganography Object instantiation
                         imageSteganography = new ImageSteganography(secretMessage.getText().toString(),
-                                publicKeyTeman.getText().toString(),
-                                original_image);
+                                publicKeyTeman.getText().toString(), original_image);
                         //TextEncoding object Instantiation
-                        textEncoding = new TextEncoding(encode.this, encode.this);
+                        textEncoding = new TextEncoding(MainActivity.this, MainActivity.this);
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
                     }
                 }
             }
-            final Bitmap imgToSave = encoded_image;
-            Thread PerformEncoding = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    saveToInternalStorage(imgToSave);
-                }
-            });
-            save = new ProgressDialog(encode.this);
-                save.setMessage("Saving, Please Wait...");
-                save.setTitle("Saving Image");
-                save.setIndeterminate(false);
-                save.setCancelable(false);
-                save.show();
-                PerformEncoding.start();
         });
     }
 
@@ -164,8 +149,11 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
     }
 
     @Override
-    public void onCompleteTextEncoding(ImageSteganography imageSteganography) {
-
+    public void onCompleteTextEncoding(ImageSteganography result) {
+        if (result != null && result.isEncoded()) {
+            encoded_image = result.getEncoded_image();
+            image.setImageBitmap(encoded_image);
+        }
     }
     private void saveToInternalStorage(Bitmap bitmapImage) {
         OutputStream fOut;
