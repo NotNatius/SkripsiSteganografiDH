@@ -2,42 +2,43 @@ package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 
+import com.ayush.imagesteganographylibrary.Text.AsyncTaskCallback.TextDecodingCallback;
 import com.ayush.imagesteganographylibrary.Text.AsyncTaskCallback.TextEncodingCallback;
 import com.ayush.imagesteganographylibrary.Text.ImageSteganography;
+import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
-
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
-
 
 import java.io.*;
 
-public class MainActivity extends AppCompatActivity implements TextEncodingCallback {
+public class MainActivity extends AppCompatActivity implements TextEncodingCallback, TextDecodingCallback {
+    private static final int SELECT_PICTURE = 100;
+    private static final String TAG = "Encode Class";
     private ImageView image;
     private Button encode;
     private Button decode;
     private TextView publicKeyAnda;
     private EditText publicKeyTeman;
     private EditText secretMessage;
+    private Button saveImage;
 
     private TextEncoding textEncoding;
+    private TextDecoding textDecoding;
     private ImageSteganography imageSteganography;
     private ProgressDialog save;
     private Uri filepath;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         image=findViewById(R.id.ivCitraR); //ImageView Tengah
         encode= findViewById(R.id.btEncode); //tombol encode
         decode = findViewById(R.id.btDecode); //Tombol decode
+        saveImage = findViewById(R.id.btSaveImage); //Tombol save image
 
         publicKeyAnda = findViewById(R.id.tvpublicuser1); //public key kita
         publicKeyTeman = findViewById(R.id.etPublic); //public key temen kita/lawan bicara
@@ -65,14 +67,9 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 boolean pick = true;
                 //Kondisi Jika bisa pick gambar maka cek permission camera
                 if (pick == true){
-                    if (!checkCameraPermission()){
-                        requestCameraPermission();
-                    }else PickImage();
-                //Kondisi Jika tidak pick gambar, maka cek permission storage
-                }else{
                     if (!checkStoragePermission()){
                         requestStoragePermission();
-                    }else PickImage();
+                    }else ImageChooser();
                 }
             }
         });
@@ -88,15 +85,48 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         textEncoding = new TextEncoding(MainActivity.this, MainActivity.this);
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
+                        Toast.makeText(MainActivity.this, "Encode", Toast.LENGTH_LONG).show();
                     }
                 }
             }
         });
-    }
 
-    //Ambil Image yang diinput
-    private void PickImage() {
-        CropImage.activity().start(this);
+        saveImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Bitmap imgToSave = encoded_image;
+                Thread PerformEncoding = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        saveToInternalStorage(imgToSave);
+                    }
+                });
+                save = new ProgressDialog(MainActivity.this);
+                save.setMessage("Saving, Please Wait...");
+                save.setTitle("Saving Image");
+                save.setIndeterminate(false);
+                save.setCancelable(false);
+                save.show();
+                PerformEncoding.start();
+            }
+        });
+
+        decode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (filepath != null) {
+                    //Making the ImageSteganography object
+                    ImageSteganography imageSteganography = new ImageSteganography(publicKeyTeman.getText().toString(),
+                            original_image);
+
+                    //Making the TextDecoding object
+                    TextDecoding textDecoding = new TextDecoding(MainActivity.this, MainActivity.this);
+
+                    //Execute Task
+                    textDecoding.execute(imageSteganography);
+                }
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -105,11 +135,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},100);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    //Request Camera dan Storage
-    private void requestCameraPermission() {
-        requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},100);
-    }
 
     //Check Request Storage
     private boolean checkStoragePermission(){
@@ -117,28 +142,20 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         return perm2;
     }
 
-    //Check Request Storage dan Camera
-    private boolean checkCameraPermission(){
-        boolean perm1 = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)== PackageManager.PERMISSION_GRANTED;
-        boolean perm2 = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED;
-        return perm1 && perm2;
-    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-            if (resultCode == RESULT_OK) {
-                Uri resultUri = result.getUri();
-                try{
-                    InputStream stream = getContentResolver().openInputStream(resultUri);
-                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                    image.setImageBitmap(bitmap);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                Exception error = result.getError();
+
+        //Image set to imageView
+        if (requestCode == SELECT_PICTURE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+
+            filepath = data.getData();
+            try {
+                original_image = MediaStore.Images.Media.getBitmap(getContentResolver(), filepath);
+
+                image.setImageBitmap(original_image);
+            } catch (IOException e) {
+                Log.d(TAG, "Error : " + e);
             }
         }
     }
@@ -154,13 +171,23 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             encoded_image = result.getEncoded_image();
             image.setImageBitmap(encoded_image);
         }
+        if (result != null) {
+            if (!result.isDecoded()){
+                if (!result.isSecretKeyWrong()) {
+                    secretMessage.setText("" + result.getMessage());
+                }
+            }
+        }
     }
     private void saveToInternalStorage(Bitmap bitmapImage) {
         OutputStream fOut;
-        File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS), "Encoded" + ".PNG"); // the File to save ,
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        // path to /data/data/yourapp/app_data/imageDir
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // Create imageDir
+        File mypath=new File(directory,"profile.jpg");
         try {
-            fOut = new FileOutputStream(file);
+            fOut = new FileOutputStream(mypath);
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fOut); // saving the Bitmap to a file
             fOut.flush(); // Not really required
             fOut.close(); // do not forget to close the stream
@@ -169,5 +196,11 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    private void ImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
     }
 }
