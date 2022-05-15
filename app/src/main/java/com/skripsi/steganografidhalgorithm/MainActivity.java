@@ -1,7 +1,6 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -42,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
     private TextEncoding textEncoding;
     private TextDecoding textDecoding;
     private ImageSteganography imageSteganography;
-    private ProgressDialog save;
     private Uri filepath;
 
     private Bitmap original_image;
