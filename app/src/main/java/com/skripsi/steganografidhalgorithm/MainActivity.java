@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         textEncoding = new TextEncoding(MainActivity.this, MainActivity.this);
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
-                        Toast.makeText(MainActivity.this, "Encode", Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -98,12 +97,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         saveToInternalStorage(imgToSave);
                     }
                 });
-                save = new ProgressDialog(MainActivity.this);
-                save.setMessage("Saving, Please Wait...");
-                save.setTitle("Saving Image");
-                save.setIndeterminate(false);
-                save.setCancelable(false);
-                save.show();
                 PerformEncoding.start();
                 Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
                 secretMessage.setText(null);
@@ -158,8 +151,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             encoded_image = result.getEncoded_image();
             image.setImageBitmap(encoded_image);
             Toast.makeText(this, "Encoded", Toast.LENGTH_SHORT).show();
-        }else{
-            Toast.makeText(this, "Tidak Encoded", Toast.LENGTH_SHORT).show();
         }
         if (result != null) {
             if (!result.isDecoded())
