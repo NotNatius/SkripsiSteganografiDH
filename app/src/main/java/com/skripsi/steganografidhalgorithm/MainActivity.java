@@ -23,7 +23,11 @@ import com.ayush.imagesteganographylibrary.Text.ImageSteganography;
 import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 
+import javax.crypto.KeyAgreement;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.*;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +49,14 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private Bitmap original_image;
     private Bitmap encoded_image;
+
+    private KeyPairGenerator     serverKeyPair;
+    private KeyPair                 serverPair;
+    private KeyAgreement    serverKeyAgreement;
+    private KeyFactory              keyFactory;
+
+    private PrivateKey privateKey;
+    private PublicKey   publicKey;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +80,18 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 ImageChooser();
             }
         });
+
+        publicKeyAnda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    GenerateKey();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         encode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -97,8 +121,8 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 });
                 PerformEncoding.start();
                 Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                publicKeyTeman.setText(null);
                 secretMessage.setText(null);
-                publicKeyAnda.setText(null);
             }
         });
 
@@ -200,5 +224,19 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), 1);
         }
+    }
+
+    private void GenerateKey() throws NoSuchAlgorithmException {
+        KeyPairGenerator serverKeyPair = KeyPairGenerator.getInstance("dh");
+        serverKeyPair.initialize(2048);
+
+        serverPair = serverKeyPair.generateKeyPair();
+        privateKey = serverPair.getPrivate();
+        publicKey = serverPair.getPublic();
+        publicKeyAnda.setText(""+ privateKey);
+    }
+    public void initDHAgreement() throws NoSuchAlgorithmException, InvalidKeyException {
+        serverKeyAgreement = KeyAgreement.getInstance("dh");
+        serverKeyAgreement.init(privateKey);
     }
 }
