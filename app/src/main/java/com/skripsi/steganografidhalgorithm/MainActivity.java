@@ -2,13 +2,12 @@ package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.*;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.ayush.imagesteganographylibrary.Text.AsyncTaskCallback.TextDecodingCallback;
@@ -25,6 +25,8 @@ import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements TextEncodingCallback, TextDecodingCallback {
     private static final int SELECT_PICTURE = 100;
@@ -59,18 +61,13 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         publicKeyTeman = findViewById(R.id.etPublic); //public key temen kita/lawan bicara
         secretMessage = findViewById(R.id.etSecretMessage); //secret message/pesan rahasia
 
+        checkAndRequestPermissions();
         //Method Imageview kalau diclick
         image.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
-            public void onClick(View v) {
-                boolean pick = true;
-                //Kondisi Jika bisa pick gambar maka cek permission camera
-                if (pick == true){
-                    if (!checkStoragePermission()){
-                        requestStoragePermission();
-                    }else ImageChooser();
-                }
+            public void onClick(View view) {
+                ImageChooser();
             }
         });
         encode.setOnClickListener(new View.OnClickListener() {
@@ -108,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 save.setCancelable(false);
                 save.show();
                 PerformEncoding.start();
+                Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                secretMessage.setText(null);
+                publicKeyAnda.setText(null);
             }
         });
 
@@ -127,19 +127,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 }
             }
         });
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    //Request Storage
-    private void requestStoragePermission() {
-        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},100);
-    }
-
-
-    //Check Request Storage
-    private boolean checkStoragePermission(){
-        boolean perm2 = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED;
-        return perm2;
     }
 
     @Override
@@ -162,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     @Override
     public void onStartTextEncoding() {
-
+        Toast.makeText(this, "Encoding...", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -170,24 +157,31 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         if (result != null && result.isEncoded()) {
             encoded_image = result.getEncoded_image();
             image.setImageBitmap(encoded_image);
+            Toast.makeText(this, "Encoded", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "Tidak Encoded", Toast.LENGTH_SHORT).show();
         }
         if (result != null) {
-            if (!result.isDecoded()){
+            if (!result.isDecoded())
+                secretMessage.setText("No message found");
+            else {
                 if (!result.isSecretKeyWrong()) {
+                    Toast.makeText(this, "Decoded", Toast.LENGTH_SHORT).show();
                     secretMessage.setText("" + result.getMessage());
+                } else {
+                    secretMessage.setText("Wrong secret key");
                 }
             }
+        } else {
+            secretMessage.setText("Select Image First");
         }
     }
     private void saveToInternalStorage(Bitmap bitmapImage) {
         OutputStream fOut;
-        ContextWrapper cw = new ContextWrapper(getApplicationContext());
-        // path to /data/data/yourapp/app_data/imageDir
-        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-        // Create imageDir
-        File mypath=new File(directory,"profile.jpg");
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS), "Encoded" + ".PNG"); // the File to save ,
         try {
-            fOut = new FileOutputStream(mypath);
+            fOut = new FileOutputStream(file);
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fOut); // saving the Bitmap to a file
             fOut.flush(); // Not really required
             fOut.close(); // do not forget to close the stream
@@ -202,5 +196,20 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+    }
+    private void checkAndRequestPermissions() {
+        int permissionWriteStorage = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int ReadPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        if (ReadPermission != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (permissionWriteStorage != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), 1);
+        }
     }
 }
