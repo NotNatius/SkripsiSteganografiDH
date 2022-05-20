@@ -1,6 +1,7 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,8 +25,6 @@ import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 
 import javax.crypto.KeyAgreement;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.io.*;
 import java.security.*;
 import java.util.ArrayList;
@@ -53,10 +52,11 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
     private KeyPairGenerator     serverKeyPair;
     private KeyPair                 serverPair;
     private KeyAgreement    serverKeyAgreement;
-    private KeyFactory              keyFactory;
+    private KeyFactory keyFactory;
 
     private PrivateKey privateKey;
     private PublicKey   publicKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
                     }
+                    publicKeyTeman.setText(null);
+                    secretMessage.setText(null);
                 }
             }
         });
@@ -167,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         Toast.makeText(this, "Encoding...", Toast.LENGTH_SHORT).show();
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onCompleteTextEncoding(ImageSteganography result) {
         if (result != null && result.isEncoded()) {
@@ -189,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             secretMessage.setText("Select Image First");
         }
     }
+
     private void saveToInternalStorage(Bitmap bitmapImage) {
         OutputStream fOut;
         File file = new File(Environment.getExternalStoragePublicDirectory(
@@ -228,12 +232,12 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private void GenerateKey() throws NoSuchAlgorithmException {
         KeyPairGenerator serverKeyPair = KeyPairGenerator.getInstance("dh");
-        serverKeyPair.initialize(2048);
+        serverKeyPair.initialize(1024);
 
         serverPair = serverKeyPair.generateKeyPair();
         privateKey = serverPair.getPrivate();
         publicKey = serverPair.getPublic();
-        publicKeyAnda.setText(""+ privateKey);
+        publicKeyAnda.setText(""+ publicKey);
     }
     public void initDHAgreement() throws NoSuchAlgorithmException, InvalidKeyException {
         serverKeyAgreement = KeyAgreement.getInstance("dh");
