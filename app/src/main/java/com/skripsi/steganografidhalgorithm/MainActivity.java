@@ -1,7 +1,6 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,11 +23,10 @@ import com.ayush.imagesteganographylibrary.Text.ImageSteganography;
 import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 
-import javax.crypto.KeyAgreement;
 import java.io.*;
-import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements TextEncodingCallback, TextDecodingCallback {
     private static final int SELECT_PICTURE = 100;
@@ -48,14 +46,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private Bitmap original_image;
     private Bitmap encoded_image;
-
-    private KeyPairGenerator     serverKeyPair;
-    private KeyPair                 serverPair;
-    private KeyAgreement    serverKeyAgreement;
-    private KeyFactory keyFactory;
-
-    private PrivateKey privateKey;
-    private PublicKey   publicKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +74,11 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         publicKeyAnda.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    GenerateKey();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                }
+                Random ran = new Random();
+                int hexadecimal = ran.nextInt();
+                String hexadecimal1 = Integer.toHexString(hexadecimal);
+                int hexadecimal2 = getDecimal(hexadecimal1);
+                publicKeyAnda.setText("Public Key Anda : " + hexadecimal1);
             }
         });
 
@@ -169,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         Toast.makeText(this, "Encoding...", Toast.LENGTH_SHORT).show();
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     public void onCompleteTextEncoding(ImageSteganography result) {
         if (result != null && result.isEncoded()) {
@@ -177,26 +166,22 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             image.setImageBitmap(encoded_image);
             Toast.makeText(this, "Encoded", Toast.LENGTH_SHORT).show();
         }
-        if (result != null) {
-            if (!result.isDecoded())
-                secretMessage.setText("No message found");
-            else {
-                if (!result.isSecretKeyWrong()) {
+        else if (result != null) {
+                if (!result.isDecoded() && !result.isSecretKeyWrong()) {
                     Toast.makeText(this, "Decoded", Toast.LENGTH_SHORT).show();
-                    secretMessage.setText("" + result.getMessage());
-                } else {
-                    secretMessage.setText("Wrong secret key");
+                    secretMessage.setText(result.getMessage());
+                }else{
+                    Toast.makeText(this, "Wrong secret key or No Message Found", Toast.LENGTH_SHORT).show();
                 }
-            }
-        } else {
-            secretMessage.setText("Select Image First");
+            } else {
+                Toast.makeText(this, "Select Image First", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void saveToInternalStorage(Bitmap bitmapImage) {
         OutputStream fOut;
         File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS), "Encoded" + ".PNG"); // the File to save ,
+                Environment.DIRECTORY_DOWNLOADS), "Encoded" + ".png"); // the File to save ,
         try {
             fOut = new FileOutputStream(file);
             bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fOut); // saving the Bitmap to a file
@@ -229,18 +214,16 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), 1);
         }
     }
-
-    private void GenerateKey() throws NoSuchAlgorithmException {
-        KeyPairGenerator serverKeyPair = KeyPairGenerator.getInstance("dh");
-        serverKeyPair.initialize(1024);
-
-        serverPair = serverKeyPair.generateKeyPair();
-        privateKey = serverPair.getPrivate();
-        publicKey = serverPair.getPublic();
-        publicKeyAnda.setText(""+ publicKey);
-    }
-    public void initDHAgreement() throws NoSuchAlgorithmException, InvalidKeyException {
-        serverKeyAgreement = KeyAgreement.getInstance("dh");
-        serverKeyAgreement.init(privateKey);
+    public static int getDecimal(String hex){
+        String digits = "0123456789ABCDEF";
+        hex = hex.toUpperCase();
+        int val = 0;
+        for (int i = 0; i < hex.length(); i++)
+        {
+            char c = hex.charAt(i);
+            int d = digits.indexOf(c);
+            val = 16*val + d;
+        }
+        return val;
     }
 }
