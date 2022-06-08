@@ -1,12 +1,13 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -26,7 +27,8 @@ import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+
+import static com.skripsi.steganografidhalgorithm.KeyExchange.*;
 
 public class MainActivity extends AppCompatActivity implements TextEncodingCallback, TextDecodingCallback {
     private static final int SELECT_PICTURE = 100;
@@ -46,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private Bitmap original_image;
     private Bitmap encoded_image;
+    private long[] decimalrandom;
+    private long[] decimalkawan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,28 +78,30 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         publicKeyAnda.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Random ran = new Random();
-                int hexadecimal = ran.nextInt();
-                String hexadecimal1 = Integer.toHexString(hexadecimal);
-                int hexadecimal2 = getDecimal(hexadecimal1);
-                publicKeyAnda.setText("Public Key Anda : " + hexadecimal1);
+                long[] decimalAnda = KeyExchange.GenerateRandom();
+                decimalrandom = KeyExchange.keyExchangeArray(decimalAnda);
+                String hexadecimalRandom = decimalTohexadecimal(decimalrandom);
+                publicKeyAnda.setText(hexadecimalRandom);
             }
         });
 
         encode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String publickeyTemanDecimal = publicKeyTeman.getText().toString();
+                decimalkawan = hexadecimaltoDecimal(publickeyTemanDecimal);
+                long[] hexadecimalCommon = keyExchangeArrayShare(decimalrandom,decimalkawan);
+                String commonKey = decimalTohexadecimal(hexadecimalCommon);
                 if (filepath != null) {
                     if (secretMessage.getText() != null) {
                         //ImageSteganography Object instantiation
-                        imageSteganography = new ImageSteganography(secretMessage.getText().toString(),
+                        imageSteganography = new ImageSteganography(commonKey,
                                 publicKeyTeman.getText().toString(), original_image);
                         //TextEncoding object Instantiation
                         textEncoding = new TextEncoding(MainActivity.this, MainActivity.this);
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
                     }
-                    publicKeyTeman.setText(null);
                     secretMessage.setText(null);
                 }
             }
@@ -171,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                     Toast.makeText(this, "Decoded", Toast.LENGTH_SHORT).show();
                     secretMessage.setText(result.getMessage());
                 }else{
-                    Toast.makeText(this, "Wrong secret key or No Message Found", Toast.LENGTH_SHORT).show();
+                    secretMessage.setText(result.getMessage());
                 }
             } else {
                 Toast.makeText(this, "Select Image First", Toast.LENGTH_SHORT).show();
@@ -179,16 +185,19 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
     }
 
     private void saveToInternalStorage(Bitmap bitmapImage) {
-        OutputStream fOut;
-        File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS), "Encoded" + ".png"); // the File to save ,
+        Bitmap bitmap = ((BitmapDrawable)image.getDrawable()).getBitmap();
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "any_picture_name");
+        values.put(MediaStore.Images.Media.BUCKET_ID, "test");
+        values.put(MediaStore.Images.Media.DESCRIPTION, "test Image taken");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/PNG");
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        OutputStream outstream;
         try {
-            fOut = new FileOutputStream(file);
-            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fOut); // saving the Bitmap to a file
-            fOut.flush(); // Not really required
-            fOut.close(); // do not forget to close the stream
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            outstream = getContentResolver().openOutputStream(uri);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outstream);
+            outstream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -213,17 +222,5 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), 1);
         }
-    }
-    public static int getDecimal(String hex){
-        String digits = "0123456789ABCDEF";
-        hex = hex.toUpperCase();
-        int val = 0;
-        for (int i = 0; i < hex.length(); i++)
-        {
-            char c = hex.charAt(i);
-            int d = digits.indexOf(c);
-            val = 16*val + d;
-        }
-        return val;
     }
 }
