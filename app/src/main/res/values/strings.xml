@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">SteganoGrafiDHAlgorithm</string>
+    <string name="inputPublikKey">Masukan Public Key yang dituju</string>
+    <string name="inputSecretMessage">Masukan Secret Message yang dituju</string>
+    <string name="buttonEncode">ENCODE</string>
+    <string name="buttonDecode">DECODE</string>
+    <string name="buttonSave">SAVE</string>
 </resources>

@@ -1,8 +1,7 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
-import android.content.ContentValues;
-import android.content.Intent;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -34,20 +33,17 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
     private static final int SELECT_PICTURE = 100;
     private static final String TAG = "Encode Class";
     private ImageView image;
-    private Button encode;
-    private Button decode;
     private TextView publicKeyAnda;
     private EditText publicKeyTeman;
     private EditText secretMessage;
-    private Button saveImage;
 
     private TextEncoding textEncoding;
     private TextDecoding textDecoding;
     private ImageSteganography imageSteganography;
     private Uri filepath;
 
-    private Bitmap original_image;
     private Bitmap encoded_image;
+    private Bitmap original_image;
     private long[] decimalrandom;
     private long[] decimalkawan;
 
@@ -57,15 +53,22 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
         setContentView(R.layout.activity_main); //activityMain
         image=findViewById(R.id.ivCitraR); //ImageView Tengah
-        encode= findViewById(R.id.btEncode); //tombol encode
-        decode = findViewById(R.id.btDecode); //Tombol decode
-        saveImage = findViewById(R.id.btSaveImage); //Tombol save image
+        Button encode = findViewById(R.id.btEncode); //tombol encode
+        Button decode = findViewById(R.id.btDecode); //Tombol decode
+        Button saveImage = findViewById(R.id.btSaveImage); //Tombol save image
+        ImageButton clipboard = findViewById(R.id.btClipboard);//Tombol copy clipboard
 
         publicKeyAnda = findViewById(R.id.tvpublicuser1); //public key kita
         publicKeyTeman = findViewById(R.id.etPublic); //public key temen kita/lawan bicara
         secretMessage = findViewById(R.id.etSecretMessage); //secret message/pesan rahasia
 
         checkAndRequestPermissions();
+
+        long[] decimalAnda = KeyExchange.GenerateRandom();
+        decimalrandom = KeyExchange.keyExchangeArray(decimalAnda);
+        String hexadecimalRandom = decimalTohexadecimal(decimalrandom);
+        publicKeyAnda.setText(hexadecimalRandom);
+
         //Method Imageview kalau diclick
         image.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -75,13 +78,13 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             }
         });
 
-        publicKeyAnda.setOnClickListener(new View.OnClickListener() {
+        clipboard.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                long[] decimalAnda = KeyExchange.GenerateRandom();
-                decimalrandom = KeyExchange.keyExchangeArray(decimalAnda);
-                String hexadecimalRandom = decimalTohexadecimal(decimalrandom);
-                publicKeyAnda.setText(hexadecimalRandom);
+            public void onClick(View view) {
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText("Publik Key Anda", publicKeyAnda.getText().toString());
+                clipboardManager.setPrimaryClip(clipData);
+                Toast.makeText(MainActivity.this, "Publik Key telah dicopy",Toast.LENGTH_SHORT).show();
             }
         });
 

@@ -14,34 +14,44 @@
         <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="300dp"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentEnd="true"
                 android:id="@+id/ivCitraR"
                 android:tooltipText="Input Gambar di sini"
                 android:src="@drawable/ic_launcher_background"/>
     </RelativeLayout>
+    <ImageButton
+            android:id="@+id/btClipboard"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_alignEnd="@+id/rLStegano"
+            android:layout_below="@+id/rLStegano"
+            android:src="@drawable/ic_copyclipboard_24"/>
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
             android:layout_below="@+id/rLStegano"
             android:id="@+id/tvpublicuser1"
-            android:text="Public Key anda : "
+            android:text=""
             android:gravity="center"
-            android:textSize="15dp"/>
+            android:textSize="20sp"
+            android:layout_marginTop="8dp"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvpublicuser1"
             android:id="@+id/etPublic"
-            android:textSize="15dp"
-            android:hint="Masukan Public Key yang dituju"/>
+            android:textSize="15sp"
+            android:hint="@string/inputPublikKey"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/etPublic"
             android:id="@+id/etSecretMessage"
-            android:textSize="15dp"
-            android:hint="Masukan Secret Message yang dituju"/>
+            android:textSize="15sp"
+            android:hint="@string/inputSecretMessage"/>
     <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -53,22 +63,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/btEncode"
-
-                android:text="ENCODE"/>
+                android:text="@string/buttonEncode"/>
         <Button
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/btDecode"
-                android:layout_marginLeft="8dp"
-                android:text="DECODE"/>
+                android:layout_marginStart="8dp"
+                android:text="@string/buttonDecode"/>
         <Button
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/btSaveImage"
-                android:layout_marginLeft="8dp"
-                android:text="SAVE"/>
+                android:layout_marginStart="8dp"
+                android:text="@string/buttonSave"/>
     </LinearLayout>
-
 </RelativeLayout>
