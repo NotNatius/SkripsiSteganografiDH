@@ -24,6 +24,7 @@ import com.ayush.imagesteganographylibrary.Text.TextDecoding;
 import com.ayush.imagesteganographylibrary.Text.TextEncoding;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,8 +45,9 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private Bitmap encoded_image;
     private Bitmap original_image;
-    private long[] decimalrandom;
+    private long[] decimalanda;
     private long[] decimalkawan;
+    private String commonKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +66,11 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
         checkAndRequestPermissions();
 
-        long[] decimalAnda = KeyExchange.GenerateRandom();
-        decimalrandom = KeyExchange.keyExchangeArray(decimalAnda);
-        String hexadecimalRandom = decimalTohexadecimal(decimalrandom);
+        BigInteger decimal = GenerateRandom();
+        long decimalLong = decimal.longValue();
+        long[] secretKeyAnda = longtoArray(decimal);
+        decimalanda = keyExchangeArray(secretKeyAnda);
+        String hexadecimalRandom = decimalTohexadecimal1(decimalLong);
         publicKeyAnda.setText(hexadecimalRandom);
 
         //Method Imageview kalau diclick
@@ -92,14 +96,15 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             @Override
             public void onClick(View view) {
                 String publickeyTemanDecimal = publicKeyTeman.getText().toString();
-                decimalkawan = hexadecimaltoDecimal(publickeyTemanDecimal);
-                long[] hexadecimalCommon = keyExchangeArrayShare(decimalrandom,decimalkawan);
-                String commonKey = decimalTohexadecimal(hexadecimalCommon);
+                BigInteger hex = new BigInteger(publickeyTemanDecimal,16);
+                decimalkawan = longtoArray(hex);
+                long[] hexadecimalCommon = keyExchangeArrayShare(decimalanda,decimalkawan);
+                commonKey = decimalTohexadecimal(hexadecimalCommon);
                 if (filepath != null) {
                     if (secretMessage.getText() != null) {
                         //ImageSteganography Object instantiation
-                        imageSteganography = new ImageSteganography(commonKey,
-                                publicKeyTeman.getText().toString(), original_image);
+                        imageSteganography = new ImageSteganography(secretMessage.getText().toString() ,
+                                commonKey, original_image);
                         //TextEncoding object Instantiation
                         textEncoding = new TextEncoding(MainActivity.this, MainActivity.this);
                         //Executing the encoding
@@ -122,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 });
                 PerformEncoding.start();
                 Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
-                publicKeyTeman.setText(null);
                 secretMessage.setText(null);
             }
         });
@@ -132,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
             public void onClick(View view) {
                 if (filepath != null) {
                     //Making the ImageSteganography object
-                    ImageSteganography imageSteganography = new ImageSteganography(publicKeyTeman.getText().toString(),
+                    ImageSteganography imageSteganography = new ImageSteganography(commonKey,
                             original_image);
 
                     //Making the TextDecoding object

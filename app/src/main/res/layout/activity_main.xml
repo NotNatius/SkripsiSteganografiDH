@@ -44,7 +44,8 @@
             android:layout_below="@+id/tvpublicuser1"
             android:id="@+id/etPublic"
             android:textSize="15sp"
-            android:hint="@string/inputPublikKey"/>
+            android:hint="@string/inputPublikKey"
+            android:maxLength="8"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
