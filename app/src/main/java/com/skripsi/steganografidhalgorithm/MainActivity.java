@@ -1,6 +1,7 @@
 package com.skripsi.steganografidhalgorithm;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -45,8 +46,8 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
     private Bitmap encoded_image;
     private Bitmap original_image;
-    private long[] decimalanda;
-    private long[] decimalkawan;
+    private long[] secretAnda;
+    private long[] publikTeman;
     private String commonKey;
 
     @Override
@@ -66,12 +67,12 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
 
         checkAndRequestPermissions();
 
-        BigInteger decimal = GenerateRandom();
-        long decimalLong = decimal.longValue();
-        long[] secretKeyAnda = longtoArray(decimal);
-        decimalanda = keyExchangeArray(secretKeyAnda);
-        String hexadecimalRandom = decimalTohexadecimal1(decimalLong);
-        publicKeyAnda.setText(hexadecimalRandom);
+        BigInteger hex1 = GenerateRandom();
+        secretAnda = longtoArray(hex1);
+        long[] publikAnda = keyExchangeArray(secretAnda);
+        String publikDecAnda = String.valueOf(decToHex(publikAnda));
+        String publikAnda1 = Long.toHexString(Long.parseLong(publikDecAnda));
+        publicKeyAnda.setText(publikAnda1);
 
         //Method Imageview kalau diclick
         image.setOnClickListener(new View.OnClickListener() {
@@ -93,13 +94,14 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
         });
 
         encode.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View view) {
-                String publickeyTemanDecimal = publicKeyTeman.getText().toString();
-                BigInteger hex = new BigInteger(publickeyTemanDecimal,16);
-                decimalkawan = longtoArray(hex);
-                long[] hexadecimalCommon = keyExchangeArrayShare(decimalanda,decimalkawan);
-                commonKey = decimalTohexadecimal(hexadecimalCommon);
+                String publikTeman1 = publicKeyTeman.getText().toString();
+                publikTeman = hextoDecLast(publikTeman1);
+                long[] commonAnda = keyExchangeArrayShare(publikTeman,secretAnda);
+                long commonDec = decToHex(commonAnda);
+                commonKey = Long.toHexString(commonDec);
                 if (filepath != null) {
                     if (secretMessage.getText() != null) {
                         //ImageSteganography Object instantiation
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
                     }
-                    secretMessage.setText(null);
+                    secretMessage.setText(commonKey);
                 }
             }
         });
@@ -127,17 +129,21 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                 });
                 PerformEncoding.start();
                 Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
-                secretMessage.setText(null);
+                secretMessage.setText("");
             }
         });
 
         decode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String publikTeman1 = publicKeyTeman.getText().toString();
+                publikTeman = hextoDecLast(publikTeman1);
+                long[] commonAnda = keyExchangeArrayShare(publikTeman,secretAnda);
+                long commonDec = decToHex(commonAnda);
+                commonKey = Long.toHexString(commonDec);
                 if (filepath != null) {
                     //Making the ImageSteganography object
-                    ImageSteganography imageSteganography = new ImageSteganography(commonKey,
-                            original_image);
+                    ImageSteganography imageSteganography = new ImageSteganography(commonKey, original_image);
 
                     //Making the TextDecoding object
                     TextDecoding textDecoding = new TextDecoding(MainActivity.this, MainActivity.this);
