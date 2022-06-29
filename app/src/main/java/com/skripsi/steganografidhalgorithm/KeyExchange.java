@@ -52,42 +52,8 @@ public class KeyExchange {
         return bilangan1.toString();
     }
 
-    public static String decimalTohexadecimal1 (long decimal){
-        return Long.toHexString(decimal);
-    }
-
-    public static String decimalTohexadecimal2 (long decimal){
-
-        return Long.toHexString(decimal);
-    }
-
-    public static BigInteger hexadecimaltoDecimal (String decimal) {
-        String digits = "0123456789abcdef";
-        BigInteger sixteen = new BigInteger("16");
-        BigInteger bigVal = new BigInteger("0");
-        for (int i = 0; i < decimal.length(); i++) {
-            char c = decimal.charAt(i);
-            int d = digits.indexOf(c);
-            BigInteger bigD = new BigInteger(String.valueOf(d));
-            bigVal = (bigVal.multiply(sixteen)).add(bigD);
-        }
-        return bigVal;
-    }
-
     public static long[] longtoArray (BigInteger bigInteger){
         long decimal1 = bigInteger.longValue();
-        String a = String.valueOf(decimal1);
-        long[] decimalArray = new long[10];
-        for (int i = 0; i < 10;i++){
-            char c = a.charAt(i);
-            long d = Long.parseLong(String.valueOf(c));
-            decimalArray[i] = d;
-        }
-        return decimalArray;
-    }
-
-    public static long[] longtoArrayString (String string){
-        long decimal1 = Long.parseLong(string);
         String a = String.valueOf(decimal1);
         long[] decimalArray = new long[10];
         for (int i = 0; i < 10;i++){

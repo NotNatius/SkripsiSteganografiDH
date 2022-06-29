@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements TextEncodingCallb
                         //Executing the encoding
                         textEncoding.execute(imageSteganography);
                     }
-                    secretMessage.setText(commonKey);
+                    secretMessage.setText("");
                 }
             }
         });
